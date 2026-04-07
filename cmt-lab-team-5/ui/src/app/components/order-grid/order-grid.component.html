@@ -1,0 +1,375 @@
+<div class="order-grid-container">
+  <!-- Header with Title and Actions -->
+  <div class="grid-header">
+    <div class="title-section">
+      <h2>Live Order Blotter</h2>
+      <span class="order-count">{{ filteredOrders.length }} / {{ stats.totalOrders }} orders</span>
+    </div>
+    
+    <div class="header-actions">
+      <button class="icon-btn" (click)="toggleStats()" [class.active]="showStats" title="Toggle Statistics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18M7 16l4-8 4 8 4-12"/>
+        </svg>
+      </button>
+      
+      <button class="icon-btn" (click)="toggleSound()" [class.active]="soundEnabled" title="Toggle Sound">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path *ngIf="soundEnabled" d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/>
+          <path *ngIf="!soundEnabled" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+        </svg>
+      </button>
+      
+      <button class="icon-btn" (click)="toggleTheme()" title="Toggle Theme">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path *ngIf="theme === 'dark'" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          <circle *ngIf="theme === 'light'" cx="12" cy="12" r="5"/>
+          <path *ngIf="theme === 'light'" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
+      
+      <button class="icon-btn" (click)="toggleColumnConfig()" title="Column Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v6m0 6v10M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m6 0h10M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/>
+        </svg>
+      </button>
+      
+      <button class="action-btn export-btn" (click)="exportToCSV()" *ngIf="filteredOrders.length > 0" title="Export to CSV">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Export
+      </button>
+      
+      <button class="action-btn clear-btn" (click)="clearOrders()" *ngIf="orders.length > 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+        </svg>
+        Clear
+      </button>
+    </div>
+  </div>
+  
+  <!-- Statistics Dashboard -->
+  <div class="stats-container" *ngIf="showStats && orders.length > 0">
+    <div class="stat-card">
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-value">{{ stats.totalOrders }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Value</div>
+      <div class="stat-value">${{ stats.totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+    </div>
+    <div class="stat-card buy">
+      <div class="stat-label">Buy Orders</div>
+      <div class="stat-value">{{ stats.buyOrders }}</div>
+    </div>
+    <div class="stat-card sell">
+      <div class="stat-label">Sell Orders</div>
+      <div class="stat-value">{{ stats.sellOrders }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Fill Rate</div>
+      <div class="stat-value">{{ stats.fillRate.toFixed(1) }}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Order Size</div>
+      <div class="stat-value">{{ stats.avgOrderSize.toLocaleString(undefined, {maximumFractionDigits: 0}) }}</div>
+    </div>
+  </div>
+
+  <!-- Trade Matching Statistics Dashboard (Lab 7 Feature) -->
+  <div class="trade-stats-container" *ngIf="showStats && tradeStats.totalTrades > 0">
+    <div class="stats-section-title">
+      <h3>💥 Live Matching Engine Statistics</h3>
+      <span class="trade-count">{{ tradeStats.totalTrades }} trades executed</span>
+    </div>
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value">{{ tradeStats.totalTrades }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Traded Value</div>
+        <div class="stat-value">${{ tradeStats.totalTradeValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Traded Qty</div>
+        <div class="stat-value">{{ tradeStats.totalTradeQty.toLocaleString(undefined, {maximumFractionDigits: 0}) }}</div>
+      </div>
+      <div class="stat-card buy">
+        <div class="stat-label">Buy Trades</div>
+        <div class="stat-value">{{ tradeStats.buyTrades }}</div>
+      </div>
+      <div class="stat-card sell">
+        <div class="stat-label">Sell Trades</div>
+        <div class="stat-value">{{ tradeStats.sellTrades }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Trade Size</div>
+        <div class="stat-value">{{ tradeStats.avgTradeSize.toLocaleString(undefined, {maximumFractionDigits: 0}) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Trade Price</div>
+        <div class="stat-value">${{ tradeStats.avgTradePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Column Configuration Panel -->
+  <div class="config-panel" *ngIf="showColumnConfig">
+    <h3>Column Visibility</h3>
+    <div class="column-toggles">
+      <label *ngFor="let col of columns" class="column-toggle">
+        <input type="checkbox" [checked]="col.visible" (change)="toggleColumn(col.key)">
+        <span>{{ col.label }}</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Filters and Search -->
+  <div class="filter-section">
+    <div class="search-bar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search by Order ID, Symbol, or Status..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      />
+      <button *ngIf="searchTerm" (click)="searchTerm = ''; onSearchChange()" class="clear-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="filter-group">
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="sideFilter === 'all'"
+          (click)="setSideFilter('all')">
+          All Sides
+        </button>
+        <button 
+          class="filter-btn buy" 
+          [class.active]="sideFilter === 'buy'"
+          (click)="setSideFilter('buy')">
+          Buy Only
+        </button>
+        <button 
+          class="filter-btn sell" 
+          [class.active]="sideFilter === 'sell'"
+          (click)="setSideFilter('sell')">
+          Sell Only
+        </button>
+      </div>
+      
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="statusFilter === 'all'"
+          (click)="setStatusFilter('all')">
+          All Status
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="statusFilter === 'NEW'"
+          (click)="setStatusFilter('NEW')">
+          New
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="statusFilter === 'FILLED'"
+          (click)="setStatusFilter('FILLED')">
+          Filled
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="statusFilter === 'REJECTED'"
+          (click)="setStatusFilter('REJECTED')">
+          Rejected
+        </button>
+      </div>
+      
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="timeFilter === 'all'"
+          (click)="setTimeFilter('all')">
+          All Time
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="timeFilter === '5min'"
+          (click)="setTimeFilter('5min')">
+          Last 5 Min
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="timeFilter === '1hour'"
+          (click)="setTimeFilter('1hour')">
+          Last Hour
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="timeFilter === 'today'"
+          (click)="setTimeFilter('today')">
+          Today
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE TRADES BLOTTER (Lab 7 Feature - Matching Engine) -->
+  <div class="trade-blotter-section" *ngIf="trades.length > 0">
+    <div class="blotter-header">
+      <h3>📊 Live Trades (Real-Time Matching)</h3>
+      <span class="recent-count">Showing {{ trades.length }} recent trades</span>
+    </div>
+    
+    <div class="trade-table-container">
+      <table class="trade-table">
+        <thead>
+          <tr>
+            <th class="time-col">Time</th>
+            <th class="exec-id-col">Exec ID</th>
+            <th class="symbol-col">Symbol</th>
+            <th class="side-col">Side</th>
+            <th class="qty-col">Quantity</th>
+            <th class="price-col">Price</th>
+            <th class="value-col">Notional</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let trade of trades; let i = index; trackBy: trackByTradeId" 
+              class="trade-row" 
+              [class.trade-new]="i < 3"
+              [class.buy-trade]="trade.side === 'BUY'"
+              [class.sell-trade]="trade.side === 'SELL'">
+            <td class="time-col">{{ formatTradeTime(trade.timestamp) }}</td>
+            <td class="exec-id-col">{{ trade.exec_id }}</td>
+            <td class="symbol-col">{{ trade.symbol }}</td>
+            <td class="side-col">
+              <span class="side-badge" [class]="trade.side === 'BUY' ? 'buy' : 'sell'">
+                {{ trade.side }}
+              </span>
+            </td>
+            <td class="qty-col numeric">{{ trade.quantity.toLocaleString(undefined, {maximumFractionDigits: 0}) }}</td>
+            <td class="price-col numeric">${{ trade.price.toFixed(2) }}</td>
+            <td class="value-col numeric">${{ trade.notional.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="no-trades-hint" *ngIf="tradeStats.totalTrades === 0 && orders.length > 0">
+    <p>⏳ Waiting for matching engine to execute trades...</p>
+  </div>
+
+  <div class="table-container" *ngIf="filteredOrders.length > 0; else emptyState">
+    <table class="order-table">
+      <thead>
+        <tr>
+          <th *ngIf="isColumnVisible('timestamp')" (click)="sort('timestamp')" class="sortable">
+            Time
+            <svg *ngIf="sortColumn === 'timestamp'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('clOrdID')" (click)="sort('clOrdID')" class="sortable">
+            Order ID
+            <svg *ngIf="sortColumn === 'clOrdID'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('symbol')" (click)="sort('symbol')" class="sortable">
+            Symbol
+            <svg *ngIf="sortColumn === 'symbol'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('side')">Side</th>
+          <th *ngIf="isColumnVisible('quantity')" (click)="sort('quantity')" class="sortable">
+            Quantity
+            <svg *ngIf="sortColumn === 'quantity'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('cumQty')">Net Qty</th>
+          <th *ngIf="isColumnVisible('price')" (click)="sort('price')" class="sortable">
+            Price
+            <svg *ngIf="sortColumn === 'price'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('value')" (click)="sort('value')" class="sortable">
+            Value
+            <svg *ngIf="sortColumn === 'value'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+          <th *ngIf="isColumnVisible('ordStatus')" (click)="sort('ordStatus')" class="sortable">
+            Status
+            <svg *ngIf="sortColumn === 'ordStatus'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="sortDirection === 'asc'" d="M12 19V5M5 12l7-7 7 7"/>
+              <path *ngIf="sortDirection === 'desc'" d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders; trackBy: trackByOrderId" 
+            [class.new-order]="order.isNew"
+            [class.buy-row]="getSideClass(order.side) === 'buy'"
+            [class.sell-row]="getSideClass(order.side) === 'sell'">
+          <td *ngIf="isColumnVisible('timestamp')" class="timestamp">{{ formatTimestamp(order.timestamp) }}</td>
+          <td *ngIf="isColumnVisible('clOrdID')" class="order-id">{{ order.clOrdID }}</td>
+          <td *ngIf="isColumnVisible('symbol')" class="symbol">{{ order.symbol }}</td>
+          <td *ngIf="isColumnVisible('side')">
+            <span class="side-badge" [class]="getSideClass(order.side)">
+              {{ getSideLabel(order.side) }}
+            </span>
+          </td>
+          <td *ngIf="isColumnVisible('quantity')" class="numeric">{{ formatQuantity(order.quantity) }}</td>
+          <td *ngIf="isColumnVisible('cumQty')" class="numeric cumqty" [class.positive]="order.quantity > 0" [class.negative]="order.quantity < 0">{{ formatQuantity(order.quantity) }}</td>
+          <td *ngIf="isColumnVisible('price')" class="numeric price">${{ formatPrice(order.price) }}</td>
+          <td *ngIf="isColumnVisible('value')" class="numeric value">${{ formatPrice(order.price * order.quantity) }}</td>
+          <td *ngIf="isColumnVisible('ordStatus')">
+            <span class="status-badge" [class]="getStatusClass(order.ordStatus)">
+              {{ order.ordStatus }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        <path d="M9 12h6m-6 4h6"/>
+      </svg>
+      <h3>No orders yet</h3>
+      <p>Orders will appear here as they are received from the FIX gateway</p>
+      <div class="status-indicator" [class.connected]="connected">
+        <span class="dot"></span>
+        <span>{{ connected ? 'Connected to backend' : 'Connecting...' }}</span>
+      </div>
+    </div>
+  </ng-template>
+</div>
